@@ -1273,7 +1273,7 @@ public class TownyThread extends Thread {
 			world.database = new TownyFlatFileSource();
 			world.database.initialize(world);
 			
-			TownyProperties.defaultTown = world.towns.get(properties.getString("default-town", null));
+			TownyProperties.defaultTown = world.towns.get(properties.getString("default-town", ""));
         } else {
 			log.info("[Towny] Database input not recognized.");
             return false;
