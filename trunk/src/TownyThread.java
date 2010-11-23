@@ -175,18 +175,26 @@ public class TownyThread extends Thread {
 	}
 	
 	public void setPlayerZone(Player player, TownBlock townblock) {
-		if (townblock == null || townblock.town == null) { playerZone.put(player.getName(), 0); return; }
-		Resident resident = world.residents.get(player.getName());
-		if (resident == null) { playerZone.put(player.getName(), townblock.town.protectionStatus); return; }
-		if (resident.town == null) { playerZone.put(player.getName(), townblock.town.protectionStatus); return; }
-		if (resident.town == townblock.town) { playerZone.put(player.getName(), 1); return; }
-		if (resident.town.nation == null || townblock.town.nation == null) { playerZone.put(player.getName(), townblock.town.protectionStatus); return; }
-		else if (resident.town.nation.friends.contains(townblock.town.nation)) { playerZone.put(player.getName(), 1); return; }
-		else if (resident.town.nation.enemies.contains(townblock.town.nation)) { playerZone.put(player.getName(), 2); return; }
-		else { playerZone.put(player.getName(), townblock.town.protectionStatus); return; }
-		// Error, it shouldn't get this far.
-		player.sendMessage("You made it through Neo. o.o");
-		player.sendMessage("For some reason, you have no playerzone. Tell Admin.");
+		if (townblock == null || townblock.town == null) 
+			playerZone.put(player.getName(), 0);
+		else {
+			Resident resident = world.residents.get(player.getName());
+			
+			if (resident == null || resident.town == null) 
+				playerZone.put(player.getName(), townblock.town.protectionStatus);
+			else if (resident.town == townblock.town)
+				playerZone.put(player.getName(), 1);
+			else {
+				if (resident.town.nation == null || townblock.town.nation == null)
+					playerZone.put(player.getName(), townblock.town.protectionStatus);
+				else if (resident.town.nation.friends.contains(townblock.town.nation))
+					playerZone.put(player.getName(), 1);
+				else if (resident.town.nation.enemies.contains(townblock.town.nation))
+					playerZone.put(player.getName(), 2); 
+				else
+					playerZone.put(player.getName(), townblock.town.protectionStatus); 
+			}
+		}
     }
 	
     public boolean onCommand(Player player, String[] split) {        
