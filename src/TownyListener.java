@@ -3,12 +3,11 @@ import java.util.*;
 public class TownyListener extends PluginListener {
     public TownyThread towny;
     public CommandQueue<Object> commandQueue;
-    private LinkedList<String> commands;
+    private ArrayList<String> commands;
 
     public TownyListener() {
-        commands = new LinkedList<String>();
-        commands.add("/resident");
-        commands.add("/player");
+        commands = new ArrayList<String>();
+        commands.add("/resident");commands.add("/player");
         commands.add("/town");
         commands.add("/nation");
 		commands.add("/towny");
