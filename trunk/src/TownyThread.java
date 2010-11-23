@@ -107,8 +107,8 @@ public class TownyThread extends Thread {
             }
 			world.database.saveResident(resident);
 			if (TownyProperties.defaultTown != null) {
-				if (mayor.town.addResident(resident))
-					sendTownMessage(mayor.town, Colors.Green + resident + " joined town!");
+				if (TownyProperties.defaultTown.addResident(resident))
+					sendTownMessage(TownyProperties.defaultTown, Colors.Green + resident + " joined town!");
 				else
 					player.sendMessage(Colors.Rose + "Couldn't join default town. Notify Admin.");
 			}
