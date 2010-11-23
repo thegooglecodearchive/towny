@@ -314,6 +314,7 @@ public class TownyThread extends Thread {
 					Resident resident = world.residents.get(player.getName());
 					if (resident == null) { player.sendMessage(Colors.Rose + "You are not registered."); return true; }
 					if (resident.town == null) { player.sendMessage(Colors.Rose + "You don't belong to any town."); return true; }
+					if (resident == resident.town.mayor && resident.town.size() > 1) { player.sendMessage(Colors.Rose + "You shouldn't abandon your citizens."); return true; }
 					
 					Town town = resident.town;
 					sendTownMessage(town, Colors.Gold + resident + " just left town.");
@@ -598,6 +599,7 @@ public class TownyThread extends Thread {
 						return true;
 					} else {
 						player.sendMessage("WallGen is not on. Ask an admin to turn it on.");
+						return true;
 					}
 				}
 			}
