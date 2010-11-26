@@ -345,6 +345,19 @@ public class TownyThread extends Thread {
 					}
 					return true;
 				}
+				// /town here
+				else if (split[1].equalsIgnoreCase("here")) {
+					long[] curTownBlock = TownyUtil.getTownBlock((long)player.getLocation().x, (long)player.getLocation().z);
+					String key = curTownBlock[0]+","+curTownBlock[1];
+					TownBlock townblock = world.townblocks.get(key);
+					if (townblock == null || townblock.town == null) {
+						player.sendMessage(Colors.Rose + "This land belongs to no one.");
+					} else {
+						for (String line : townblock.town.getStatus())
+							player.sendMessage(line);
+					}
+					return true;
+				}
 				// /town sethome
 				else if (split[1].equalsIgnoreCase("sethome")) {
 					Resident resident = world.residents.get(player.getName());
@@ -641,12 +654,15 @@ public class TownyThread extends Thread {
 			
 			player.sendMessage(ChatTools.formatTitle("/town"));
 			player.sendMessage("  §3/town §b: Your town's status");
+			player.sendMessage("  §3/town §b[town] : Selected town's status");
+			player.sendMessage("  §3/town §bhere : Shortcut to the town's status of your location.");
 			player.sendMessage("  §3/town §blist");
 			player.sendMessage("  §3/town §bleave");
 			player.sendMessage("  §cMayor: §3/town §badd [resident]");
 			player.sendMessage("  §cMayor: §3/town §bkick [resident]");
 			player.sendMessage("  §cMayor: §3/town §bsetboard [message]");
 			player.sendMessage("  §cMayor: §3/town §bprotect [on/off/buildonly]");
+			player.sendMessage("  §cMayor: §3/town §bpvp [on/off]");
 			player.sendMessage("  §cMayor: §3/town §bwall [type] [height]");
 			player.sendMessage("  §cMayor: §3/town §bassistant [+/-] [player]");
 			player.sendMessage("  §cMayor: §3/town §bwall remove");
@@ -1296,9 +1312,11 @@ public class TownyThread extends Thread {
     }
     
     public boolean load() {
-        if (properties == null) { properties = new PropertiesFile("towny.properties"); }
-        else { properties.load(); }
-        
+		try {
+			if (properties == null) { properties = new PropertiesFile("towny.properties"); }
+			else { properties.load(); }
+        } catch (IOException e) { log.info("[Towny] Error reading towny.properties"); return false; }
+		
         TownyProperties.activePeriod = 1000*60*60*24*properties.getInt("activeperiod", 7);
         TownyProperties.timeTillWar = 1000*60*properties.getInt("timetillwar", 1440);
         TownyProperties.blockSize = properties.getInt("blocksize", 16);

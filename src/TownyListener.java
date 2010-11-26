@@ -72,15 +72,14 @@ public class TownyListener extends PluginListener {
 			
 			// Check Allies
 			if (!TownyProperties.friendlyfire) {
-				log.info("1");
 				Resident residenA = towny.world.residents.get(a.getName());
 				if (residenA == null) return false;
 				if (residenA.town == null) return false;
 				Player b = defender.getPlayer();
 				Resident residenB = towny.world.residents.get(b.getName());
 				if (residenB == null) return false;
-				if (residenB.town == null) return false;log.info("2");
-				if (residenA.town == residenB.town) return true;log.info("3");
+				if (residenB.town == null) return false;
+				if (residenA.town == residenB.town) return true;
 				if (residenA.town.nation == null || residenB.town.nation == null) return false;
 				if (residenA.town.nation == residenB.town.nation) return true;
 				if (residenA.town.nation.friends.contains(residenB.town.nation)) return true;
