@@ -11,8 +11,9 @@ public class TownyProperties {
     public static String source, flatFileFolder, settingsFolder;
     public static HashMap<Integer, HashMap<String, String>> townLevel = new HashMap<Integer, HashMap<String,String>>();
     public static HashMap<Integer, HashMap<String, String>> nationLevel = new HashMap<Integer, HashMap<String,String>>();
-    public static boolean townCreationAdminOnly, unclaimedZoneBuildRights, wallGenOn;
-	public static int claimRatio;
+    public static boolean townCreationAdminOnly, unclaimedZoneBuildRights,
+		wallGenOn, townNotifications, noMobsInTown, friendlyfire;
+	public static int claimRatio, townRegen;
 	public static String[] firstLoginMsg;
 	public static Town defaultTown;
 	

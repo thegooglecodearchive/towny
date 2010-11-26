@@ -1,6 +1,8 @@
 import java.util.*;
+import java.util.logging.Logger;
 
 public class TownyListener extends PluginListener {
+	protected static final Logger log = Logger.getLogger("Minecraft");
     public TownyThread towny;
     public CommandQueue<Object> commandQueue;
     private ArrayList<String> commands;
@@ -64,8 +66,40 @@ public class TownyListener extends PluginListener {
 		commandQueue.addWork(objs);
     }
     
+	public boolean onDamage(BaseEntity attacker,BaseEntity defender){
+		if (attacker.isPlayer() && defender.isPlayer()) {
+			Player a = attacker.getPlayer();
+			
+			// Check Allies
+			if (!TownyProperties.friendlyfire) {
+				log.info("1");
+				Resident residenA = towny.world.residents.get(a.getName());
+				if (residenA == null) return false;
+				if (residenA.town == null) return false;
+				Player b = defender.getPlayer();
+				Resident residenB = towny.world.residents.get(b.getName());
+				if (residenB == null) return false;
+				if (residenB.town == null) return false;log.info("2");
+				if (residenA.town == residenB.town) return true;log.info("3");
+				if (residenA.town.nation == null || residenB.town.nation == null) return false;
+				if (residenA.town.nation == residenB.town.nation) return true;
+				if (residenA.town.nation.friends.contains(residenB.town.nation)) return true;
+			}
+			
+			// Check Town PvP status
+			long[] posTownBlock = TownyUtil.getTownBlock((long)a.getX(), (long)a.getZ());
+			String key = posTownBlock[0]+","+posTownBlock[1];
+			TownBlock townblock = towny.world.townblocks.get(key);
+			if (townblock == null) return false;
+			if (townblock.town == null) return false;
+			if (!townblock.town.pvp) return true;
+		}
+		
+		return false;
+	}
+	
     public boolean onBlockCreate(Player player, Block blockPlaced, Block blockClicked, int itemInHand) {
-		if (player.isAdmin()) // Ignore PlayerZones when admin.
+		if (player.canUseCommand("/townyadmin")) // Ignore PlayerZones when admin.
 			return false;
 		
 		int zone;
@@ -99,7 +133,7 @@ public class TownyListener extends PluginListener {
     }
     
     public boolean onBlockDestroy(Player player, Block block) {
-		if (player.isAdmin()) // Ignore PlayerZones when admin.
+		if (player.canUseCommand("/townyadmin")) // Ignore PlayerZones when admin.
 			return false;
 		
         int zone = (towny.playerZone.get(player.getName()) == null) ? -1 : towny.playerZone.get(player.getName());
