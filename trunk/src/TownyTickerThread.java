@@ -1,3 +1,5 @@
+import java.util.*;
+
 public class TownyTickerThread extends Thread {
 	public boolean running = true;
 	TownyThread towny;
@@ -34,17 +36,21 @@ public class TownyTickerThread extends Thread {
 				}
 				
 				if (TownyProperties.noMobsInTown) {
-					for (Mob mob : etc.getServer().getMobList()) {
-						long[] posTownBlock = TownyUtil.getTownBlock((long)mob.getX(), (long)mob.getZ());
-						String key = posTownBlock[0]+","+posTownBlock[1];
-						TownBlock townblock = towny.world.townblocks.get(key);
-						if (townblock == null) continue;
-						if (townblock.town == null) continue;
-						
-						//delete mob
-						//Workaround
-						mob.teleportTo(mob.getX(), -50, mob.getZ(), 0, 0);
-					}
+					try {
+						List<Mob> mobs = etc.getServer().getMobList();
+						for (int i = 0; i < mobs.size(); i++) {
+							Mob mob = mobs.get(i);
+							long[] posTownBlock = TownyUtil.getTownBlock((long)mob.getX(), (long)mob.getZ());
+							String key = posTownBlock[0]+","+posTownBlock[1];
+							TownBlock townblock = towny.world.townblocks.get(key);
+							if (townblock == null) continue;
+							if (townblock.town == null) continue;
+							
+							//delete mob
+							//Workaround
+							mob.teleportTo(mob.getX(), -50, mob.getZ(), 0, 0);
+						}
+					} catch(Exception cme) {} //You don't need to hold up the rest of the server for this.
 				}
 				
 				sleep(1000);
