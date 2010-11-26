@@ -18,6 +18,7 @@ public class Town implements Comparable<Town> {
     public Region region;
 	public int bonusBlocks;
 	public TownBlock homeBlock;
+	public boolean pvp;
 	
 	public int protectionStatus;
 	// 3 = Protect
@@ -34,6 +35,7 @@ public class Town implements Comparable<Town> {
 		townBoard = "To change me, use: /town setboard [msg]";
 		protectionStatus = 3;
 		bonusBlocks = 0;
+		pvp = false;
     }
 	
 	public ArrayList<Player> getOnlinePlayers() {
@@ -128,8 +130,8 @@ public class Town implements Comparable<Town> {
     public ArrayList<String> getStatus() {
         ArrayList<String> out = new ArrayList<String>();
         
-        // ___[ Racoon City ]___
-        out.add(ChatTools.formatTitle(toString()));
+        // ___[ Racoon City (PvP) ]___
+        out.add(ChatTools.formatTitle(toString() + (pvp ? Colors.Red+" (PvP)" : "")));
         
         // Lord: Mayor Quimby
         // Board: Get your fried chicken

@@ -197,6 +197,13 @@ public class TownyFlatFileSource extends TownyDataSource {
 					} catch (NumberFormatException nfe) {} catch (Exception e) {}
 				}
 				
+				line = kvFile.get("pvp");
+				if (line != null) {
+					try {
+						town.pvp = Boolean.parseBoolean(line);
+					} catch (NumberFormatException nfe) {} catch (Exception e) {}
+				}
+				
 			} catch (Exception e) {
 				log.log(Level.SEVERE, "Exception while reading town file "+town.name, e);
 				return false;
@@ -376,6 +383,8 @@ public class TownyFlatFileSource extends TownyDataSource {
 			fout.write(newLine);
 			// Home Block
 			fout.write("homeBlock=" + Long.toString(town.homeBlock.x) + ":" + Long.toString(town.homeBlock.z) + newLine);
+			// PVP
+			fout.write("pvp=" + Boolean.toString(town.pvp) + newLine);
 			
 			fout.close();
 		} catch (Exception e) {

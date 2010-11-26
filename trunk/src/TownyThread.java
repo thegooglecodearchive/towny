@@ -36,6 +36,9 @@ public class TownyThread extends Thread {
     
     public TownyWorld world;
 	private WarThread warThread;
+	
+	private String adminTownName = "Admin";
+	private String adminTownMayor = "A";
     
     public TownyThread(CommandQueue<Object> cQ) {
         this.commandQueue = cQ;
@@ -130,7 +133,7 @@ public class TownyThread extends Thread {
         long[] toTownBlock = TownyUtil.getTownBlock((long)to.x, (long)to.z);
         
         if (fromTownBlock[0] != toTownBlock[0] || fromTownBlock[1] != toTownBlock[1]) {
-            String key = toTownBlock[0]+","+toTownBlock[1];
+			String key = toTownBlock[0]+","+toTownBlock[1];
             TownBlock townblock = world.townblocks.get(key);
             
 			
@@ -143,6 +146,18 @@ public class TownyThread extends Thread {
 					if (townblock.resident != null)
 						line += " [" + townblock.resident +"]";
 					player.sendMessage(line);
+				}
+			}
+			if (TownyProperties.townNotifications) {
+				key = fromTownBlock[0]+","+fromTownBlock[1];
+				TownBlock oldTownblock = world.townblocks.get(key);
+				if (townblock != null && townblock.town != null) { // If town next block is a town
+					if ( oldTownblock == null || oldTownblock.town == null || // If old block is wilderness
+						 oldTownblock.town != townblock.town ) // If old block was another town
+						player.sendMessage(Colors.Gold + " ~ "+townblock.town);
+				} else {
+					if (oldTownblock != null && oldTownblock.town != null) // If old block was a town
+						player.sendMessage(Colors.Gold + " ~ " + Colors.Green + "Wilderness");
 				}
 			}
         }
@@ -284,6 +299,7 @@ public class TownyThread extends Thread {
 				/town setlord [town] [lord]
 				/town sethome
 				/town protect [on/off/buildonly]
+				/town pvp [on/off]
 			*/
             if (split.length == 1) {
 				// /town
@@ -451,6 +467,25 @@ public class TownyThread extends Thread {
 						updateAllPlayerZones();
 						return true;
 					} 
+				}
+				// /town pvp [on/off]
+				else if (split[1].equalsIgnoreCase("pvp")) {
+					Resident mayor = world.residents.get(player.getName());
+					if (mayor == null) { player.sendMessage(Colors.Rose + "You are not registered."); return true; }
+					if (mayor.town == null) { player.sendMessage(Colors.Rose + "You don't belong to any town."); return true; }
+					if (!mayor.isMayor) { player.sendMessage(Colors.Rose + "You're not the mayor."); return true; }
+					
+					if (split[2].equalsIgnoreCase("on")) {
+						mayor.town.pvp = true;
+						player.sendMessage(Colors.Rose + "The town is now a PvP zone.");
+						updateAllPlayerZones();
+						return true;
+					} else if (split[2].equalsIgnoreCase("off")) {
+						mayor.town.pvp = false;
+						player.sendMessage(Colors.Green + "The town is now a PvP free zone.");
+						updateAllPlayerZones();
+						return true;
+					}
 				}
 				// /town wall remove
 				else if (split[1].equalsIgnoreCase("wall")) {
@@ -1025,6 +1060,7 @@ public class TownyThread extends Thread {
 					String key = Long.toString(curTownBlock[0])+","+Long.toString(curTownBlock[1]);
 					TownBlock townblock = world.townblocks.get(key);
 					if (townblock == null || townblock.town == null) { player.sendMessage(Colors.Rose + "This block hasn't been claimed yet."); return true; }
+					/////////if (townblock.town.name.equals)
 					if (townblock.town != mayor.town) { player.sendMessage(Colors.Rose + "This block doesn't belong to your town."); return true; }
 					
 					world.townblocks.remove(key);
@@ -1060,6 +1096,32 @@ public class TownyThread extends Thread {
 					
 					return true;
 				}
+				// /claim admin
+				/*else if (split[1].equalsIgnoreCase("admin")) {
+					if (!player.canUseCommand("/townyadmin")) { player.sendMessage(Colors.Rose + "This command is admin only."); return true; }
+					
+					Town town = world.towns.get(adminTownName);
+					long[] curTownBlock = TownyUtil.getTownBlock((long)player.getX(), (long)player.getZ());
+					TownBlock townblock = world.townblocks.get(Long.toString(curTownBlock[0])+","+Long.toString(curTownBlock[1]));
+					if (town == null) {
+						world.newTown(adminTownName);
+						town = world.towns.get(adminTownName);
+						town.addResident(adminTownMayor);
+						town.setMayor(adminTownMayor);
+						town.homeBlock = townblock;
+					}
+					
+					if (claimTownBlock(mayor, curTownBlock)) {
+						updateAllPlayerZones();
+						world.database.saveTown(town);
+						world.database.saveTownBlocks();
+						player.sendMessage(Colors.Green + "You annex your new territory.");
+						return;
+					} else {
+						player.sendMessage(Colors.Rose + "This block belongs to another town.");
+						return;
+					}
+				}*/
 				/*
 				//
 				else if (split[1].equalsIgnorecase("auto")) {
@@ -1249,7 +1311,11 @@ public class TownyThread extends Thread {
 		TownyProperties.unclaimedZoneBuildRights = properties.getBoolean("unclaimedzone-buildrights", true);
 		TownyProperties.townCreationAdminOnly = properties.getBoolean("towncreation-adminonly", true);
 		TownyProperties.wallGenOn = properties.getBoolean("wallgenon", false);
-        if (TownyProperties.source.equalsIgnoreCase("flatfile")) {
+		TownyProperties.townNotifications = properties.getBoolean("townnotifications", true);
+		TownyProperties.noMobsInTown = properties.getBoolean("nomobsintown", false);
+		TownyProperties.friendlyfire = properties.getBoolean("friendlyfire", false);
+        TownyProperties.townRegen = properties.getInt("townregen", 1);
+		if (TownyProperties.source.equalsIgnoreCase("flatfile")) {
             TownyProperties.flatFileFolder = properties.getString("flatfilefolder", "towny");
             
 			//Create files and folders if non-existant
