@@ -7,7 +7,6 @@ public class Towny extends Plugin {
     private TownyThread towny;
 	private TownyTickerThread tickerThread;
     private CommandQueue<Object> commandQueue;
-    
     public TownyListener listener;
     
     public Towny() {
@@ -18,6 +17,7 @@ public class Towny extends Plugin {
 		commandQueue = new CommandQueue<Object>();
         towny = new TownyThread(commandQueue);
 		tickerThread = new TownyTickerThread(towny);
+		
         listener.towny = towny;
 		listener.commandQueue = commandQueue;
 		
