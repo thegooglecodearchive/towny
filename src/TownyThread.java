@@ -39,6 +39,7 @@ public class TownyThread extends Thread {
 	
 	private String adminTownName = "Admin";
 	private String adminTownMayor = "A";
+	
     
     public TownyThread(CommandQueue<Object> cQ) {
         this.commandQueue = cQ;
@@ -222,9 +223,9 @@ public class TownyThread extends Thread {
 			/*
 				/resident
 				/resident ?
-				/resdient [resident]
-				/resdient list
-				/resdient delete [resident] *Admin
+				/resident [resident]
+				/resident list
+				/resident delete [resident] *Admin
 			*/
 			if (split.length == 1) {
 				// /resident
@@ -279,8 +280,8 @@ public class TownyThread extends Thread {
 			player.sendMessage(ChatTools.formatTitle("/resident"));
 			player.sendMessage("  §3/resident");
 			player.sendMessage("  §3/resident §b?");
-			player.sendMessage("  §3/resdient §b[resident]");
-			player.sendMessage("  §3/resdient §blist");
+			player.sendMessage("  §3/resident §b[resident]");
+			player.sendMessage("  §3/resident §blist");
 			player.sendMessage("  §cAdmin: §3/resdient §bdelete [resident]");
         }  
         else if (split[0].equalsIgnoreCase("/town")) {
@@ -509,7 +510,10 @@ public class TownyThread extends Thread {
 						if (!mayor.isMayor) { player.sendMessage(Colors.Rose + "You're not the mayor."); return true; }
 						
 						if (split[2].equalsIgnoreCase("remove")) {
+							BlockQueue blockQueue = BlockQueue.getInstance();
+							blockQueue.addWork(new Job(player.getName()));
 							WallGen.deleteTownWall(world, mayor.town);
+							blockQueue.addWork(BlockThread.END_JOB);
 							player.sendMessage("WallGen - Completed");
 						}
 						return true;
@@ -631,6 +635,8 @@ public class TownyThread extends Thread {
 							return true;
 						}
 						
+						BlockQueue blockQueue = BlockQueue.getInstance();
+						blockQueue.addWork(new Job(player.getName()));
 						WallGen.deleteTownWall(world, mayor.town);
 						if (split[2].equalsIgnoreCase("wood")) {
 							mayor.town.wall.blockType = 17;
@@ -643,6 +649,7 @@ public class TownyThread extends Thread {
 						}
 						mayor.town.wall.height = newHeight;
 						WallGen.townGen(world, mayor.town);
+						blockQueue.addWork(BlockThread.END_JOB);
 						player.sendMessage("WallGen - Completed");
 						return true;
 					} else {
