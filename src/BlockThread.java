@@ -29,7 +29,7 @@ public class BlockThread extends Thread {
 					currentJob.done(blocks, skipped);
 				
 				if (obj instanceof Block) {
-					buildBlock((Block)obj);
+					try { buildBlock((Block)obj); } catch (Exception e) { skipped++; };
 					blocks++;
 				}
 				
@@ -46,7 +46,7 @@ public class BlockThread extends Thread {
 	} 
 	
 	public void buildBlock(Block block) {
-		try { sleep(10); } catch (InterruptedException e) {}
+		try { sleep(50); } catch (InterruptedException e) {}
 		
 		if (block.getType() == etc.getServer().getBlockIdAt(block.getX(), block.getY(), block.getZ()))
 			return;
