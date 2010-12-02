@@ -66,9 +66,20 @@ public class TownyListener extends PluginListener {
 		commandQueue.addWork(objs);
     }
     
-	public boolean onDamage(BaseEntity attacker,BaseEntity defender){
-		if (attacker.isPlayer() && defender.isPlayer()) {
+	public boolean onDamage(PluginLoader.DamageType type, BaseEntity attacker,BaseEntity defender, int amount){
+		if (type == PluginLoader.DamageType.ENTITY && attacker.isPlayer() && defender.isPlayer()) {
 			Player a = attacker.getPlayer();
+			
+			// Check Town PvP status
+			long[] posTownBlock = TownyUtil.getTownBlock((long)a.getX(), (long)a.getZ());
+			String key = posTownBlock[0]+","+posTownBlock[1];
+			TownBlock townblock = towny.world.townblocks.get(key);
+			if (townblock == null) return false;
+			log.info("Has townblock");
+			if (townblock.town == null) return false;
+			log.info("Has town");
+			if (!townblock.town.pvp) return true;
+			log.info("Has PVP Zone!");
 			
 			// Check Allies
 			if (!TownyProperties.friendlyfire) {
@@ -84,21 +95,13 @@ public class TownyListener extends PluginListener {
 				if (residenA.town.nation == residenB.town.nation) return true;
 				if (residenA.town.nation.friends.contains(residenB.town.nation)) return true;
 			}
-			
-			// Check Town PvP status
-			long[] posTownBlock = TownyUtil.getTownBlock((long)a.getX(), (long)a.getZ());
-			String key = posTownBlock[0]+","+posTownBlock[1];
-			TownBlock townblock = towny.world.townblocks.get(key);
-			if (townblock == null) return false;
-			if (townblock.town == null) return false;
-			if (!townblock.town.pvp) return true;
 		}
 		
 		return false;
 	}
 	
-    public boolean onBlockCreate(Player player, Block blockPlaced, Block blockClicked, int itemInHand) {
-		if (player.canUseCommand("/townyadmin")) // Ignore PlayerZones when admin.
+    public boolean onBlockPlace(Player player, Block blockPlaced, Block blockClicked, Item itemInHand) {
+		if (player.canUseCommand("/townyadmin") || player.canUseCommand("/townybuilder")) // Ignore PlayerZones when admin.
 			return false;
 		
 		int zone;

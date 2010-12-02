@@ -752,6 +752,7 @@ public class TownyThread extends Thread {
 						log.info("[Towny] " + i);
 						Town town = world.towns.get(split[i]);
 						if (town == null) { player.sendMessage(Colors.Rose + "That town doesn't exist."); return true; }
+						if (town.nation != null) { player.sendMessage(Colors.Rose + "That town already belongs to a nation."); return true; }
 						
 						if (king.town.nation.addTown(town)) {
 							sendNationMessage(king.town.nation, Colors.Green + town + " joined the nation!");

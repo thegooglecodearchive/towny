@@ -1,18 +1,23 @@
 import java.util.*;
 
 public class TownyTickerThread extends Thread {
-	public boolean running = true;
+	private boolean running;
 	TownyThread towny;
 
 	public TownyTickerThread(TownyThread towny) {
 		super();
 		this.towny = towny;
+		setRunning(true);
+	}
+	
+	public synchronized void setRunning(boolean running) {
+		this.running = running;
 	}
 	
 	public void run() {
 		try {
 			while (running) {
-				if (TownyProperties.townRegen > 0) {
+				/*if (TownyProperties.townRegen > 0) {
 					for (Player player : etc.getServer().getPlayerList()) {
 						Resident resident = towny.world.residents.get(player.getName());
 						if (resident == null) continue;
@@ -33,7 +38,7 @@ public class TownyTickerThread extends Thread {
 							continue;
 						}
 					}
-				}
+				}*/
 				
 				if (TownyProperties.noMobsInTown) {
 					try {
