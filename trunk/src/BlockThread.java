@@ -7,11 +7,18 @@ public class BlockThread extends Thread {
 	public static final Object NO_MORE_WORK = new Object();
 	public static final Object END_JOB = new Object();
 	
+	private boolean running;
+	
 	private Job currentJob;
 	private int blocks, skipped;
 	
 	public BlockThread(BlockQueue blockQueue) {
         this.blockQueue = blockQueue;
+		setRunning(true);
+	}
+	
+	public synchronized void setRunning(boolean running) {
+		this.running = running;
 	}
 	
 	public void run() {
@@ -19,7 +26,7 @@ public class BlockThread extends Thread {
 		skipped = 0;
 		
 		try {
-			while (true) {
+			while (running) {
 				Object obj = blockQueue.getWork();
 				
 				if (obj == NO_MORE_WORK)
@@ -46,24 +53,27 @@ public class BlockThread extends Thread {
 	} 
 	
 	public void buildBlock(Block block) {
-		try { sleep(50); } catch (InterruptedException e) {}
+		try { sleep(25); } catch (InterruptedException e) {}
 		
 		if (block.getType() == etc.getServer().getBlockIdAt(block.getX(), block.getY(), block.getZ()))
 			return;
 			
-		etc.getServer().setBlock(block);
+		boolean result = etc.getServer().setBlock(block);
 		
+		/*
 		int tries = 0;
 		while (tries < 3) {
+			try { sleep(50); } catch (InterruptedException e) { break; }
 			
 			if (block.getType() == etc.getServer().getBlockIdAt(block.getX(), block.getY(), block.getZ()))
 				break;
 			
 			tries++;	
-			try { sleep(100); } catch (InterruptedException e) { break; }
+			try { sleep(50); } catch (InterruptedException e) { break; }
 		}
 		if (tries == 3)
 			skipped++;
+		*/
 	}
 }
 
