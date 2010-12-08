@@ -6,19 +6,15 @@ import java.util.logging.Logger;
 public class Town implements Comparable<Town> {
     protected static final Logger log = Logger.getLogger("Minecraft");
     //private final String newLine = System.getProperty("line.separator");
-    public String name;
+    public String name, townBoard;
     public Resident mayor;
-	public ArrayList<Resident> assistants;
-    public ArrayList<Resident> residents;
+	public ArrayList<Resident> assistants, residents;
 	public Wall wall;
-    public String townBoard;
     public Nation nation;
-    public int activeResidents;
-    public boolean isCapital;
+    public int activeResidents, bonusBlocks;
+    public boolean isCapital, pvp, mobs;
     public Region region;
-	public int bonusBlocks;
 	public TownBlock homeBlock;
-	public boolean pvp;
 	
 	public int protectionStatus;
 	// 3 = Protect
@@ -36,6 +32,7 @@ public class Town implements Comparable<Town> {
 		protectionStatus = 3;
 		bonusBlocks = 0;
 		pvp = false;
+		mobs = false;
     }
 	
 	public ArrayList<Player> getOnlinePlayers() {

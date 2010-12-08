@@ -22,11 +22,12 @@ public class TownyThread extends Thread {
 	public String[] zoneDeffinitions = {"Unclaimed", "Friendly", "Enemy", "Neutral", "Neutral-Public", "Neutral-Build Only"};
 	public HashMap<String, Integer> playerZone;
     // 0 = Unclaimed Zone Restrictions in effect.
-    // 1 = Belong to town / Is an ally
+    // 1 = Belong to town / Is an ally / Owns plot
     // 2 = Enemy town
 	// 3 = Don't belong to town -> Protect town
 	// 4 = Don't belong to town -> Town is public (Build+Destroy)
 	// 5 = Don't belong to town -> Town is build-only (Build)
+	// 6 = Doesn't own plot
 	
     public static final Object NO_MORE_WORK = new Object();
     private CommandQueue<Object> commandQueue;
@@ -110,6 +111,7 @@ public class TownyThread extends Thread {
                 log.info("[Towny] Could not create the player "+player.getName());
             }
 			world.database.saveResident(resident);
+			world.database.saveResidentList();
 			if (TownyProperties.defaultTown != null) {
 				if (TownyProperties.defaultTown.addResident(resident))
 					sendTownMessage(TownyProperties.defaultTown, Colors.Green + resident + " joined town!");
@@ -122,6 +124,7 @@ public class TownyThread extends Thread {
             if (resident.town != null)
                 player.sendMessage(Colors.Gold + "[" + resident.town.name + "] " + Colors.Yellow + resident.town.townBoard);
 			world.database.saveResident(resident);
+			world.database.saveResidentList();
         }
 		
 		updatePlayerZone(player);
@@ -274,6 +277,29 @@ public class TownyThread extends Thread {
 						delResident(player, split[2]);
 					world.database.saveResidentList();
 					return true;
+				}
+			} else if (split.length == 4) {
+				// /resident friend [+/-] [player]
+				if (split[1].equalsIgnoreCase("friend")) {
+					Resident you = world.residents.get(player.getName());
+					if (you == null) { player.sendMessage(Colors.Rose + "You are not registered."); return true; }
+					Resident resident = world.residents.get(split[3]);
+					if (resident == null) { player.sendMessage(Colors.Rose + "That player is not registered."); return true; }
+					
+					// /resident friend + [player]
+					if (split[2].equals("+")) {
+						if (!you.addFriend(resident)) { player.sendMessage(Colors.Rose + "Your already friends with that player."); return true; }
+						world.database.saveResident(you);
+						player.sendMessage(Colors.Green + split[3] + " is now your friend.");
+						return true;
+					}
+					// /resident friend - [player]
+					else if (split[2].equals("-")) {
+						if (!you.remFriend(resident)) { player.sendMessage(Colors.Rose + "Your not currently friends with that player."); return true; }
+						world.database.saveResident(you);
+						player.sendMessage(Colors.Green + split[3] + " is no longer your friend.");
+						return true;
+					}
 				}
 			}
 			
@@ -438,6 +464,22 @@ public class TownyThread extends Thread {
 					}
 					return true;
 				}
+				// /town renameto [name]
+				if (split[1].equalsIgnoreCase("renameto")) {
+					if (world.towns.containsKey(split[2])) { player.sendMessage(Colors.Rose + "That town name already exists!"); return true; }
+					Resident mayor = world.residents.get(player.getName());
+					if (mayor == null) { player.sendMessage(Colors.Rose + "You are not registered."); return true; }
+					if (mayor.town == null) { player.sendMessage(Colors.Rose + "You don't belong to any town."); return true; }
+					if (!mayor.isMayor) { player.sendMessage(Colors.Rose + "You're not the mayor."); return true; }
+					
+					String oldName = mayor.town.toString();
+					String oldKey = mayor.town.name;
+					mayor.town.name = split[2];
+					world.towns.put(split[2], mayor.town);
+					world.towns.remove(oldKey);
+					globalMessage(Colors.Green + player.getName() +" renamed " + oldName + " to " + mayor.town + "!");
+					return true;
+				}
 				// /town kick [resident]
 				else if (split[1].equalsIgnoreCase("kick")) {
 					Resident mayor = world.residents.get(player.getName());
@@ -492,12 +534,27 @@ public class TownyThread extends Thread {
 					if (split[2].equalsIgnoreCase("on")) {
 						mayor.town.pvp = true;
 						player.sendMessage(Colors.Rose + "The town is now a PvP zone.");
-						updateAllPlayerZones();
 						return true;
 					} else if (split[2].equalsIgnoreCase("off")) {
 						mayor.town.pvp = false;
 						player.sendMessage(Colors.Green + "The town is now a PvP free zone.");
-						updateAllPlayerZones();
+						return true;
+					}
+				}
+				// /town mobs [on/off]
+				else if (split[1].equalsIgnoreCase("mobs")) {
+					Resident mayor = world.residents.get(player.getName());
+					if (mayor == null) { player.sendMessage(Colors.Rose + "You are not registered."); return true; }
+					if (mayor.town == null) { player.sendMessage(Colors.Rose + "You don't belong to any town."); return true; }
+					if (!mayor.isMayor) { player.sendMessage(Colors.Rose + "You're not the mayor."); return true; }
+					
+					if (split[2].equalsIgnoreCase("on")) {
+						mayor.town.mobs = true;
+						player.sendMessage(Colors.Rose + "Beware~ Mobs spawn here. D:");
+						return true;
+					} else if (split[2].equalsIgnoreCase("off")) {
+						mayor.town.mobs = false;
+						player.sendMessage(Colors.Green + "The town is now a mob free zone.");
 						return true;
 					}
 				}
@@ -739,7 +796,6 @@ public class TownyThread extends Thread {
 				}
 			} else if (split.length >= 3 && (split[1].equalsIgnoreCase("add"))) {
 				// /nation add [town] .. [town]
-				log.info("[Towny] reached");
 				if (split[1].equalsIgnoreCase("add")) {
 					Resident king = world.residents.get(player.getName());
 					if (king == null) { player.sendMessage(Colors.Rose + "You are not registered."); return true; }
@@ -749,7 +805,6 @@ public class TownyThread extends Thread {
 					
 					
 					for (int i = 2; i < split.length; i++) {
-						log.info("[Towny] " + i);
 						Town town = world.towns.get(split[i]);
 						if (town == null) { player.sendMessage(Colors.Rose + "That town doesn't exist."); return true; }
 						if (town.nation != null) { player.sendMessage(Colors.Rose + "That town already belongs to a nation."); return true; }
@@ -791,6 +846,23 @@ public class TownyThread extends Thread {
 					} else {
 						player.sendMessage(Colors.Rose + "That town doesn't belong to your nation.");
 					}
+					return true;
+				}
+				// /nation renameto [name]
+				if (split[1].equalsIgnoreCase("renameto")) {
+					if (world.towns.containsKey(split[2])) { player.sendMessage(Colors.Rose + "That town name already exists!"); return true; }
+					Resident king = world.residents.get(player.getName());
+					if (king == null) { player.sendMessage(Colors.Rose + "You are not registered."); return true; }
+					if (king.town == null) { player.sendMessage(Colors.Rose + "You don't belong to any town."); return true; }
+					if (king.town.nation == null) { player.sendMessage(Colors.Rose + "Your town doesn't belong to a nation."); return true; }
+					if (!king.isKing) { player.sendMessage(Colors.Rose + "You're not the king."); return true; }
+					
+					String oldName = king.town.nation.toString();
+					String oldKey = king.town.nation.name;
+					king.town.nation.name = split[2];
+					world.nations.put(split[2], king.town.nation);
+					world.nations.remove(oldKey);
+					globalMessage(Colors.Green + player.getName() +" renamed " + oldName + " to " + king.town.nation + "!");
 					return true;
 				}
 				// /nation setcapital [town]
