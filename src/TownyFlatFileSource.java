@@ -93,6 +93,17 @@ public class TownyFlatFileSource extends TownyDataSource {
 				resident.town = world.towns.get(kvFile.get("town"));
 				resident.isMayor = (resident.town != null && (resident == resident.town.mayor || resident.town.assistants.contains(resident)));
 				resident.isKing = (resident.town != null && resident.town.nation != null && resident.town.nation.capital != null && (resident == resident.town.nation.capital.mayor || resident.town.nation.assistants.contains(resident)));
+				
+				String line = kvFile.get("friends");
+				if (line != null) {
+					String[] tokens = line.split(",");
+					for (String token : tokens) {
+						Resident friend = world.residents.get(token);
+						if (friend != null) {
+							resident.addFriend(friend);
+						}
+					}
+				}
 			} catch (Exception e) {
 				log.log(Level.SEVERE, "Exception while reading resident file "+resident.name, e);
 				return false;
@@ -204,6 +215,13 @@ public class TownyFlatFileSource extends TownyDataSource {
 					} catch (NumberFormatException nfe) {} catch (Exception e) {}
 				}
 				
+				line = kvFile.get("mobs");
+				if (line != null) {
+					try {
+						town.mobs = Boolean.parseBoolean(line);
+					} catch (NumberFormatException nfe) {} catch (Exception e) {}
+				}
+				
 			} catch (Exception e) {
 				log.log(Level.SEVERE, "Exception while reading town file "+town.name, e);
 				return false;
@@ -291,7 +309,7 @@ public class TownyFlatFileSource extends TownyDataSource {
 			BufferedReader fin = new BufferedReader(new FileReader(TownyProperties.flatFileFolder + "/data/townblocks.csv"));
 			while ( (line = fin.readLine()) != null) {
 				tokens = line.split(",");
-				if (tokens.length == 4) {
+				if (tokens.length >= 4) {
 					world.newTownBlock(tokens[0], tokens[1]);
 					TownBlock townblock = world.townblocks.get(tokens[0] + "," + tokens[1]);
 					Town town = world.towns.get(tokens[2]);
@@ -299,6 +317,11 @@ public class TownyFlatFileSource extends TownyDataSource {
 					if (townblock != null) {
 						townblock.town = town;
 						townblock.resident = resident;
+					}
+					if (tokens.length == 5) {
+						try {
+							townblock.forSale = Boolean.parseBoolean(tokens[4]);
+						} catch (Exception e) {}
 					}
 				}
 			}
@@ -340,7 +363,11 @@ public class TownyFlatFileSource extends TownyDataSource {
 			BufferedWriter fout = new BufferedWriter(new FileWriter(path));
 			fout.write("lastLogin=" + Long.toString(resdient.lastLogin) + newLine);
 			if (resdient.town != null)
-				fout.write("town=" + resdient.town.name);
+				fout.write("town=" + resdient.town.name + newLine);
+			fout.write("friends=");
+			for(Resident friend : resdient.friends)
+				fout.write(friend.name + ",");
+			fout.write(newLine);
 			fout.close();
 		} catch (Exception e) {
 			return false;
@@ -385,6 +412,8 @@ public class TownyFlatFileSource extends TownyDataSource {
 			fout.write("homeBlock=" + Long.toString(town.homeBlock.x) + ":" + Long.toString(town.homeBlock.z) + newLine);
 			// PVP
 			fout.write("pvp=" + Boolean.toString(town.pvp) + newLine);
+			// Mobs
+			fout.write("mobs=" + Boolean.toString(town.mobs) + newLine);
 			
 			fout.close();
 		} catch (Exception e) {

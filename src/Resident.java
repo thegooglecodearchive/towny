@@ -11,6 +11,7 @@ public class Resident {
     public boolean isMayor;
 	public boolean isKing;
 	public boolean isActive;
+	public ArrayList<Resident> friends;
 
     public Resident(String name) {
         this(name, false);
@@ -25,6 +26,33 @@ public class Resident {
         isMayor = false;
 		isKing = false;
 		isActive = false;
+		friends = new ArrayList<Resident>();
+    }
+	
+	public boolean addFriend(Resident resident) {
+        if (!friends.contains(resident)) {
+            friends.add(resident);
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    public boolean remFriend(Resident resident) {
+        if (friends.contains(resident)) {
+            friends.remove(resident);
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    public boolean remAllFriends() {
+        friends.clear(); 
+        if (friends.size() == 0)
+            return true;
+        else
+            return false;
     }
     
     public String getLastLogin() {
@@ -60,6 +88,11 @@ public class Resident {
             line += town;
         }
         out.add(line);
+		
+		// Friends [12]:
+        // James, Carry, Mason
+        out.add(Colors.Green + "Friends " + Colors.LightGreen + "[" + friends.size() + "]" + Colors.Green + ":");
+        out.addAll(ChatTools.list(friends.toArray()));
         
         return out;
     }

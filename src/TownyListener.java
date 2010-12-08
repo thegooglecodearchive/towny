@@ -101,7 +101,7 @@ public class TownyListener extends PluginListener {
 	}
 	
     public boolean onBlockPlace(Player player, Block blockPlaced, Block blockClicked, Item itemInHand) {
-		if (player.canUseCommand("/townyadmin") || player.canUseCommand("/townybuilder")) // Ignore PlayerZones when admin.
+		if (player.canUseCommand("/townyadmin")) // Ignore PlayerZones when admin.
 			return false;
 		
 		int zone;
@@ -109,14 +109,15 @@ public class TownyListener extends PluginListener {
 			zone = -1;
 		else
 			zone = (towny.playerZone.get(player.getName()) == null) ? -1 : towny.playerZone.get(player.getName());
-			
+		
 		if (zone == -1) {
 			player.sendMessage(Colors.Rose + "Error: You don't have a playerZone.");
 			player.sendMessage(Colors.Rose + "Notify admin. Shade (coder) needs to know what");
 			player.sendMessage(Colors.Rose + "happened. Tell admin what you interactions with");
 			player.sendMessage(Colors.Rose + "Towny this login. Thank you. -Shade");
             return true;
-		}	
+		}
+		
 		// Stop creation if player doesn't belong to town or if he's an enemy
         // ToDo: Let enemies place TNT and/or fire.
         if (zone == 3 || zone == 2) {
@@ -125,7 +126,7 @@ public class TownyListener extends PluginListener {
 		}
 		
 		// Stop creation outside towns if configured so.
-		if (zone == 0 && !TownyProperties.unclaimedZoneBuildRights) {
+		if (zone == 0 && !TownyProperties.unclaimedZoneBuildRights && !player.canUseCommand("/towny-worldbuilder")) {
 			player.sendMessage(Colors.Rose + "You should start a town first before building.");
 			return true;
 		}

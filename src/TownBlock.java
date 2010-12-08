@@ -5,10 +5,12 @@ public class TownBlock {
     public long x, z;
     public Town town;
     public Resident resident;
+	public boolean forSale;
     
     public TownBlock(long x, long z) {
         this.x = x;
         this.z = z;
+		this.forSale = false;
     }
 	
 	public boolean isEdgeBlock() {
